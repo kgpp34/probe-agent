@@ -1,0 +1,100 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.dlut</groupId>
+  <artifactId>probe-agent</artifactId>
+  <packaging>jar</packaging>
+  <version>1.0-SNAPSHOT</version>
+  <name>probe-agent</name>
+  <url>http://maven.apache.org</url>
+
+  <properties>
+    <!-- 项目编码 -->
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <!-- 本地编译JDK版本 -->
+    <maven.compiler.source>1.8</maven.compiler.source>
+    <!-- 项目部署JDK版本 -->
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <!--项目编译JDK版本-->
+    <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+    <premain.class>com.dlut.agent.ProbeAgent</premain.class>
+    <can.redefine.classes>true</can.redefine.classes>
+    <can.retransform.classes>true</can.retransform.classes>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>3.8.1</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>net.bytebuddy</groupId>
+      <artifactId>byte-buddy</artifactId>
+      <version>1.10.13</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <finalName>agent</finalName>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            <version>3.8.1</version>
+            <configuration>
+                <source>${maven.compiler.source}</source>
+                <target>${maven.compiler.target}</target>
+            </configuration>
+        </plugin>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-shade-plugin</artifactId>
+          <version>3.2.4</version>
+          <executions>
+              <execution>
+                  <phase>package</phase>
+                  <goals>
+                      <goal>shade</goal>
+                  </goals>
+                  <configuration>
+                      <createSourcesJar>false</createSourcesJar>
+                      <shadeSourcesContent>false</shadeSourcesContent>
+                      <shadedArtifactAttached>false</shadedArtifactAttached>
+                      <createDependencyReducedPom>false</createDependencyReducedPom>
+                      <transformers>
+                          <transformer
+                                  implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                              <!-- 配置参数 -->
+                              <manifestEntries>
+                                  <Premain-Class>${premain.class}</Premain-Class>
+                                  <Can-Redefine-Classes>${can.redefine.classes}</Can-Redefine-Classes>
+                                  <Can-Retransform-Classes>${can.retransform.classes}</Can-Retransform-Classes>
+                              </manifestEntries>
+                          </transformer>
+                      </transformers>
+                      <filters>
+                          <!-- 剔除掉一些package或者dependencies -->
+                          <filter>
+                              <artifact>net.bytebuddy:byte-buddy</artifact>
+                              <excludes>
+                                  <exclude>META-INF/versions/9/module-info.class</exclude>
+                              </excludes>
+                          </filter>
+                          <filter>
+                              <artifact>*:*</artifact>
+                              <excludes>
+                                  <exclude>com/dlut/App</exclude>   <!-- 剔除原来的main包 -->
+                                  <exclude>com/dlut/service/**</exclude>  
+                                  <exclude>**/maven/</exclude> <!-- 剔除第三方里的pom.xml和pom.properties -->
+                              </excludes>
+                          </filter>
+                      </filters>
+                  </configuration>
+              </execution>
+          </executions>
+      </plugin>
+    </plugins>
+</build>
+</project>
